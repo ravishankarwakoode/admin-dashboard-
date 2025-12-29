@@ -1,5 +1,5 @@
 <?php
-// profile.php - User profile editing page
+// profile.php - User profile editing page with dashboard
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
@@ -99,13 +99,19 @@ if (isset($conn) && $conn) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary-color: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary-color: #764ba2;
+            --sidebar-bg: #1a202c;
+            --sidebar-hover: #2d3748;
+            --card-bg: #ffffff;
+            --text-light: #718096;
+            --text-dark: #2d3748;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
         }
         
         * {
@@ -116,181 +122,251 @@ if (isset($conn) && $conn) {
         
         body {
             font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+            display: flex;
+            color: var(--text-dark);
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 100;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-header {
+            padding: 30px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+        
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .avatar-small {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            position: relative;
-            overflow-x: hidden;
+            font-weight: bold;
+            font-size: 1.4rem;
+            color: white;
         }
         
-        /* Animated Background Elements */
-        .bg-elements {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
+        .user-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
         }
         
-        .circle {
-            position: absolute;
-            border-radius: 50%;
+        .user-info span {
+            font-size: 0.85rem;
+            color: var(--text-light);
             background: rgba(255, 255, 255, 0.1);
-            animation: float 20s infinite linear;
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-block;
         }
         
-        .circle:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            top: -150px;
-            left: -150px;
-            animation-delay: 0s;
+        .sidebar-menu {
+            padding: 25px 0;
         }
         
-        .circle:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            bottom: -100px;
-            right: 20%;
-            animation-delay: 5s;
-            animation-duration: 25s;
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 25px;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
         }
         
-        .circle:nth-child(3) {
-            width: 150px;
-            height: 150px;
-            top: 30%;
-            right: -75px;
-            animation-delay: 10s;
-            animation-duration: 30s;
+        .menu-item:hover,
+        .menu-item.active {
+            background: var(--sidebar-hover);
+            color: white;
+            border-left-color: var(--primary-color);
         }
         
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .menu-item i {
+            width: 20px;
+            font-size: 1.2rem;
         }
         
-        @keyframes float {
-            0% { transform: translateY(0) rotate(0deg); }
-            100% { transform: translateY(-1000px) rotate(720deg); }
+        .menu-item span {
+            font-size: 1rem;
+            font-weight: 500;
         }
         
-        .profile-container {
-            max-width: 900px;
-            width: 100%;
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            padding: 50px;
-            border-radius: 25px;
-            box-shadow: 
-                0 25px 50px rgba(0, 0, 0, 0.15),
-                0 0 0 1px rgba(255, 255, 255, 0.1);
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .notification-btn {
             position: relative;
-            overflow: hidden;
-            z-index: 1;
-            animation: slideUp 0.8s ease-out;
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: var(--transition);
         }
         
-        .profile-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 8px;
-            background: var(--primary-gradient);
-            animation: progressBar 2s ease-in-out;
+        .notification-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
         }
         
-        .profile-container::after {
-            content: '';
+        .notification-badge {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-            z-index: -1;
+            top: 5px;
+            right: 5px;
+            background: var(--danger-color);
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Profile Container */
+        .profile-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.5s ease-out;
         }
         
         .profile-header {
             display: flex;
             align-items: center;
-            gap: 25px;
+            gap: 30px;
             margin-bottom: 40px;
-            padding-bottom: 25px;
-            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+            padding-bottom: 30px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
         }
         
-        .avatar-container {
-            position: relative;
-            width: 100px;
-            height: 100px;
-        }
-        
-        .avatar {
-            width: 100%;
-            height: 100%;
-            background: var(--primary-gradient);
+        .avatar-large {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: bold;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
         }
         
-        .avatar::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
-        }
-        
-        h1 {
-            color: #2c3e50;
-            font-size: 2.8rem;
-            font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.5px;
-            flex: 1;
+        .profile-info h2 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: var(--text-dark);
         }
         
         .user-role {
             display: inline-block;
             padding: 8px 20px;
-            background: var(--secondary-gradient);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
             color: white;
             border-radius: 20px;
             font-size: 0.9rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-top: 10px;
-            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.3);
+            margin-top: 5px;
         }
         
+        /* Form Styles */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -299,55 +375,35 @@ if (isset($conn) && $conn) {
         }
         
         .form-section {
-            background: rgba(248, 250, 252, 0.5);
+            background: #f8fafc;
             padding: 30px;
-            border-radius: 20px;
-            border: 1px solid rgba(226, 232, 240, 0.5);
-            transition: var(--transition);
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
         }
         
-        .form-section:hover {
-            transform: translateY(-5px);
-            border-color: #667eea;
-            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.1);
-        }
-        
-        h3 {
-            color: #2c3e50;
+        .form-section h3 {
+            color: var(--text-dark);
             margin-bottom: 25px;
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             display: flex;
             align-items: center;
             gap: 12px;
         }
         
-        h3 i {
-            background: var(--secondary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 1.4rem;
+        .form-section h3 i {
+            color: var(--primary-color);
         }
         
         .form-group {
             margin-bottom: 25px;
-            position: relative;
         }
         
         label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-            color: #4a5568;
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-dark);
             font-weight: 600;
             font-size: 0.95rem;
-            letter-spacing: 0.5px;
-        }
-        
-        label i {
-            color: #667eea;
-            width: 20px;
         }
         
         .input-with-icon {
@@ -356,13 +412,12 @@ if (isset($conn) && $conn) {
         
         .input-with-icon input {
             width: 100%;
-            padding: 18px 20px 18px 50px;
+            padding: 16px 20px 16px 50px;
             border: 2px solid #e2e8f0;
-            border-radius: 15px;
+            border-radius: 12px;
             font-size: 16px;
             transition: var(--transition);
-            background: #f8fafc;
-            color: #2d3748;
+            background: white;
         }
         
         .input-with-icon .icon {
@@ -370,137 +425,96 @@ if (isset($conn) && $conn) {
             left: 20px;
             top: 50%;
             transform: translateY(-50%);
-            color: #a0aec0;
-            transition: var(--transition);
+            color: var(--text-light);
         }
         
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="password"]:focus {
+        input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            background: white;
-            transform: translateY(-2px);
         }
         
-        input[type="text"]:focus + .icon,
-        input[type="email"]:focus + .icon,
-        input[type="password"]:focus + .icon {
-            color: #667eea;
-            transform: translateY(-50%) scale(1.1);
+        /* Messages */
+        .success, .error {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideIn 0.5s ease-out;
         }
         
+        .success {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+        }
+        
+        .error {
+            background: linear-gradient(45deg, #f56565, #e53e3e);
+            color: white;
+        }
+        
+        /* Buttons */
         .form-actions {
             display: flex;
             gap: 20px;
             margin-top: 40px;
             padding-top: 30px;
-            border-top: 2px solid rgba(226, 232, 240, 0.5);
+            border-top: 2px solid #e2e8f0;
         }
         
         .btn {
-            flex: 1;
-            padding: 20px;
+            padding: 18px 35px;
             border: none;
-            border-radius: 15px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
-            letter-spacing: 0.5px;
             transition: var(--transition);
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 12px;
-            position: relative;
-            overflow: hidden;
         }
         
         .btn-primary {
-            background: var(--primary-gradient);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
             color: white;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
         }
         
         .btn-secondary {
-            background: rgba(226, 232, 240, 0.5);
-            color: #4a5568;
-            border: 2px solid #e2e8f0;
+            background: #e2e8f0;
+            color: var(--text-dark);
             text-decoration: none;
             text-align: center;
         }
         
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.5s;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
-        }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
-        }
-        
         .btn-secondary:hover {
-            background: white;
-            border-color: #667eea;
-            color: #667eea;
+            background: #cbd5e0;
         }
         
-        .success {
-            background: var(--success-gradient);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: 500;
-            animation: slideIn 0.5s ease-out;
-            box-shadow: 0 10px 25px rgba(67, 233, 123, 0.3);
-        }
-        
-        .error {
-            background: var(--warning-gradient);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: 500;
-            animation: slideIn 0.5s ease-out;
-            box-shadow: 0 10px 25px rgba(250, 112, 154, 0.3);
-        }
-        
+        /* Password Strength */
         .password-strength {
             margin-top: 10px;
-            height: 4px;
+            height: 6px;
             background: #e2e8f0;
-            border-radius: 2px;
+            border-radius: 3px;
             overflow: hidden;
-            position: relative;
         }
         
         .strength-meter {
             height: 100%;
             width: 0;
             transition: var(--transition);
-            background: var(--primary-gradient);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
         }
         
+        /* Animations */
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -523,14 +537,44 @@ if (isset($conn) && $conn) {
             }
         }
         
-        @keyframes progressBar {
-            from { width: 0; }
-            to { width: 100%; }
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 250px;
+            }
+            
+            .main-content {
+                margin-left: 250px;
+            }
         }
         
-        @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 99;
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 1.2rem;
+            }
         }
         
         @media (max-width: 768px) {
@@ -538,148 +582,205 @@ if (isset($conn) && $conn) {
                 grid-template-columns: 1fr;
             }
             
-            .profile-container {
-                padding: 30px 20px;
-                margin: 15px;
-            }
-            
             .profile-header {
                 flex-direction: column;
                 text-align: center;
-                gap: 15px;
             }
             
-            .form-actions {
+            .header {
                 flex-direction: column;
+                gap: 20px;
+                text-align: center;
             }
             
-            h1 {
-                font-size: 2.2rem;
+            .header-actions {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Animated Background Elements -->
-    <div class="bg-elements">
-        <div class="circle"></div>
-        <div class="circle"></div>
-        <div class="circle"></div>
-    </div>
-    
-    <div class="profile-container">
-        <div class="profile-header">
-            <div class="avatar-container">
-                <div class="avatar">
-                    <?php 
-                    // Get first letter of username for avatar
-                    if (isset($user['username']) && !empty($user['username'])) {
-                        echo strtoupper(substr($user['username'], 0, 1));
-                    } else {
-                        echo 'U';
-                    }
-                    ?>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+            <div class="user-profile">
+                <div class="avatar-small">
+                    <?php echo strtoupper(substr($user['username'] ?? 'U', 0, 1)); ?>
                 </div>
-            </div>
-            <div>
-                <h1>Edit Profile</h1>
-                <div class="user-role">
-                    <i class="fas fa-user-tag"></i> 
-                    <?php 
-                    echo isset($user['role']) && !empty($user['role']) 
-                        ? htmlspecialchars($user['role']) 
-                        : 'Member';
-                    ?>
+                <div class="user-info">
+                    <h4><?php echo htmlspecialchars($user['full_name'] ?? 'User'); ?></h4>
+                    <span><?php echo htmlspecialchars($user['role'] ?? 'Member'); ?></span>
                 </div>
             </div>
         </div>
         
-        <?php if (!empty($success)): ?>
-            <div class="success">
-                <i class="fas fa-check-circle"></i>
-                <span><?php echo htmlspecialchars($success); ?></span>
+        <div class="sidebar-menu">
+            <a href="dashboard.php" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="menu-item active">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="users.php" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="settings.php" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="analytics.php" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="messages.php" class="menu-item">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+                <span class="notification-badge">3</span>
+            </a>
+            <a href="reports.php" class="menu-item">
+                <i class="fas fa-file-alt"></i>
+                <span>Reports</span>
+            </a>
+            <a href="help.php" class="menu-item">
+                <i class="fas fa-question-circle"></i>
+                <span>Help & Support</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <h1>Profile Settings</h1>
+            <div class="header-actions">
+                <button class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">5</span>
+                </button>
+                <button class="logout-btn" onclick="window.location.href='logout.php'">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </button>
             </div>
-        <?php endif; ?>
+        </div>
         
-        <?php if (!empty($error)): ?>
-            <div class="error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span><?php echo htmlspecialchars($error); ?></span>
-            </div>
-        <?php endif; ?>
-        
-        <form method="POST" action="">
-            <div class="form-grid">
-                <div class="form-section">
-                    <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-user"></i> Username</label>
-                        <div class="input-with-icon">
-                            <input type="text" value="<?php echo isset($user['username']) ? htmlspecialchars($user['username']) : ''; ?>" disabled>
-                            <i class="fas fa-lock icon"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-id-card"></i> Full Name</label>
-                        <div class="input-with-icon">
-                            <input type="text" name="full_name" value="<?php echo isset($user['full_name']) ? htmlspecialchars($user['full_name']) : ''; ?>" placeholder="Enter your full name">
-                            <i class="fas fa-signature icon"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email Address</label>
-                        <div class="input-with-icon">
-                            <input type="email" name="email" value="<?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>" required placeholder="Enter your email">
-                            <i class="fas fa-at icon"></i>
-                        </div>
-                    </div>
+        <!-- Profile Container -->
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="avatar-large">
+                    <?php echo strtoupper(substr($user['username'] ?? 'U', 0, 1)); ?>
                 </div>
-                
-                <div class="form-section">
-                    <h3><i class="fas fa-key"></i> Security Settings</h3>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-lock"></i> Current Password</label>
-                        <div class="input-with-icon">
-                            <input type="password" name="current_password" placeholder="Enter current password">
-                            <i class="fas fa-key icon"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-key"></i> New Password</label>
-                        <div class="input-with-icon">
-                            <input type="password" name="new_password" id="new_password" placeholder="Enter new password">
-                            <i class="fas fa-unlock-alt icon"></i>
-                        </div>
-                        <div class="password-strength">
-                            <div class="strength-meter" id="strengthMeter"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-key"></i> Confirm Password</label>
-                        <div class="input-with-icon">
-                            <input type="password" name="confirm_password" placeholder="Confirm new password">
-                            <i class="fas fa-check-circle icon"></i>
-                        </div>
+                <div class="profile-info">
+                    <h2><?php echo htmlspecialchars($user['full_name'] ?? 'User'); ?></h2>
+                    <p><?php echo htmlspecialchars($user['email'] ?? ''); ?></p>
+                    <div class="user-role">
+                        <?php echo htmlspecialchars($user['role'] ?? 'Member'); ?>
                     </div>
                 </div>
             </div>
             
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Update Profile
-                </button>
-                <a href="dashboard.php" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </a>
-            </div>
-        </form>
+            <!-- Messages -->
+            <?php if (!empty($success)): ?>
+                <div class="success">
+                    <i class="fas fa-check-circle"></i>
+                    <span><?php echo htmlspecialchars($success); ?></span>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (!empty($error)): ?>
+                <div class="error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span><?php echo htmlspecialchars($error); ?></span>
+                </div>
+            <?php endif; ?>
+            
+            <!-- Profile Form -->
+            <form method="POST" action="">
+                <div class="form-grid">
+                    <!-- Personal Information -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
+                        
+                        <div class="form-group">
+                            <label>Username</label>
+                            <div class="input-with-icon">
+                                <input type="text" value="<?php echo htmlspecialchars($user['username'] ?? ''); ?>" disabled>
+                                <i class="fas fa-user icon"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <div class="input-with-icon">
+                                <input type="text" name="full_name" value="<?php echo htmlspecialchars($user['full_name'] ?? ''); ?>" placeholder="Enter your full name">
+                                <i class="fas fa-signature icon"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <div class="input-with-icon">
+                                <input type="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" required placeholder="Enter your email">
+                                <i class="fas fa-envelope icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Security Settings -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-key"></i> Security Settings</h3>
+                        
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" name="current_password" placeholder="Enter current password">
+                                <i class="fas fa-lock icon"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" name="new_password" id="new_password" placeholder="Enter new password">
+                                <i class="fas fa-key icon"></i>
+                            </div>
+                            <div class="password-strength">
+                                <div class="strength-meter" id="strengthMeter"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" name="confirm_password" placeholder="Confirm new password">
+                                <i class="fas fa-check-circle icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a href="dashboard.php" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
+    
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" id="menuToggle" style="display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
     
     <script>
         // Password strength indicator
@@ -688,7 +789,6 @@ if (isset($conn) && $conn) {
             const strengthMeter = document.getElementById('strengthMeter');
             let strength = 0;
             
-            // Check password strength
             if (password.length >= 6) strength += 20;
             if (password.length >= 8) strength += 20;
             if (/[A-Z]/.test(password)) strength += 20;
@@ -697,39 +797,39 @@ if (isset($conn) && $conn) {
             
             strengthMeter.style.width = strength + '%';
             
-            // Change color based on strength
+            // Update color based on strength
             if (strength < 40) {
-                strengthMeter.style.background = 'linear-gradient(135deg, #ff0000 0%, #ff5e5e 100%)';
+                strengthMeter.style.background = 'linear-gradient(45deg, #f56565, #e53e3e)';
             } else if (strength < 80) {
-                strengthMeter.style.background = 'linear-gradient(135deg, #ffa500 0%, #ffd700 100%)';
+                strengthMeter.style.background = 'linear-gradient(45deg, #ed8936, #dd6b20)';
             } else {
-                strengthMeter.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+                strengthMeter.style.background = 'linear-gradient(45deg, #48bb78, #38a169)';
             }
         });
         
-        // Form animations
-        document.addEventListener('DOMContentLoaded', function() {
-            const formSections = document.querySelectorAll('.form-section');
-            formSections.forEach((section, index) => {
-                section.style.animationDelay = `${index * 0.1}s`;
-                section.style.animation = 'slideIn 0.5s ease-out forwards';
-                section.style.opacity = '0';
-            });
-            
-            // Input focus effects
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.parentElement.parentElement.style.transform = 'translateY(-5px)';
-                });
-                
-                input.addEventListener('blur', function() {
-                    this.parentElement.parentElement.style.transform = 'translateY(0)';
-                });
-            });
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        // Show menu toggle on mobile
+        if (window.innerWidth <= 992) {
+            menuToggle.style.display = 'block';
+        }
+        
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
         });
         
-        // Prevent form submission if new passwords don't match
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 992 && 
+                !sidebar.contains(e.target) && 
+                !menuToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+        
+        // Form validation
         document.querySelector('form').addEventListener('submit', function(e) {
             const newPassword = document.querySelector('input[name="new_password"]').value;
             const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
@@ -740,6 +840,35 @@ if (isset($conn) && $conn) {
                 return false;
             }
         });
+        
+        // Update notification count
+        function updateNotificationCount() {
+            // Simulate new notifications
+            const badge = document.querySelector('.notification-badge');
+            let count = parseInt(badge.textContent);
+            if (Math.random() > 0.7) {
+                count++;
+                badge.textContent = count;
+                badge.style.animation = 'none';
+                setTimeout(() => {
+                    badge.style.animation = 'pulse 0.5s';
+                }, 10);
+            }
+        }
+        
+        // Check for new notifications every 30 seconds
+        setInterval(updateNotificationCount, 30000);
+        
+        // Add pulse animation for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.2); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
