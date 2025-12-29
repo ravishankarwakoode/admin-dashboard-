@@ -56,5 +56,5 @@ Before you begin, ensure you have installed:
 
 ```bash
 # Clone repository (if using Git)
-git clone https://github.com/yourusername/admin-dashboard.git
+git clone https://github.com/ravishankarwakode/admin-dashboard.git
 
